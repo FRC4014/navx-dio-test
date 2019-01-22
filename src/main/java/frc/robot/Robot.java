@@ -11,27 +11,37 @@ public class Robot extends TimedRobot {
     return ROBORIO_DIO_COUNT + n + (n > 3 ? 4 : 0);
   }
 
+  // setup RoboRIO's
+  private static int ROBORIO_U_TRIG = 8;
+  private static int ROBORIO_U_SIG = 9;
+  private static Ultrasonic ROBORIO_U = new Ultrasonic(ROBORIO_U_TRIG, ROBORIO_U_SIG);
+
   // Setup 5 Ultrasonics to cover all the NavX Digital IO pins
   public static Ultrasonic[] US = new Ultrasonic[5];
+
   static {
+    ROBORIO_U.setName("RoboRIO trig:" + ROBORIO_U_TRIG + "    sig:" + ROBORIO_U_SIG + " ");
+    System.out.println("RoboRIO's is Ultrasonic(" + ROBORIO_U_TRIG + ", " + ROBORIO_U_SIG + ")");
+
     for (int i = 0; i < US.length; i++) {
       int t = i * 2;
       int s = t + 1;
-      US[i] = new Ultrasonic(navxDioPin(t), navxDioPin(s));
-      US[i].setName("trig:" + t + "   sig:" + (s));
-      System.out.println("US[" + i + "] = Ultrasonic(" + t + ", "+s+")");
+      int nt = navxDioPin(t);
+      int ns = navxDioPin(s);
+      US[i] = new Ultrasonic(nt, ns);
+      US[i].setName("NavX    trig:" + nt + "   sig:" + ns);
+      System.out.println("US[" + i + "] is for NavX: Ultrasonic(" + nt + ", " + ns + ")" +
+                         "   Pin numbers on NavX: " + t + " and " + s);
     }
   }
 
-  // setup RoboRIO's
-  private static Ultrasonic ROBORIO_U = new Ultrasonic(8, 9);
-
   @Override
   public void testInit() {
+    ROBORIO_U.setAutomaticMode(true);
+
     for (int i = 0; i < US.length; i++) {
       US[i].setAutomaticMode(true);
     }
-    ROBORIO_U.setAutomaticMode(true);
   }
 
   int testPeriodicCalls = 0;
@@ -40,18 +50,18 @@ public class Robot extends TimedRobot {
     if (testPeriodicCalls++ % 100 == 0) {
       System.out.println("---");
 
-      // print NavX's
-      for (int i = 0; i < US.length; i++) {
-        System.out.print(US[i].getName());
-        double mm = US[i].getRangeMM();
-        System.out.println("    Distance: " + mm + " mm");
-      }
+      log(ROBORIO_U);
 
-      // print roborio's 
-      System.out.print(ROBORIO_U.getName());
-      double mm = ROBORIO_U.getRangeMM();
-      System.out.println("    Distance: " + mm + " mm");
+      for (int i = 0; i < US.length; i++) {
+        log(US[i]);
+      }
     }
+  }
+
+  private void log(Ultrasonic u) {
+    System.out.print(u.getName());
+    double mm = u.getRangeMM();
+    System.out.println("    Distance: " + mm + " mm");
   }
 
 }
